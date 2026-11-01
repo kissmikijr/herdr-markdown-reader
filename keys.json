@@ -1,0 +1,8 @@
+{
+  "global": {
+    "ctrl-shift-m": "mod.open:markdown-reader",
+    "ctrl-shift-r": "mod.open:markdown-reader-pane",
+    "cmd-shift-m": "mod.open:markdown-reader",
+    "cmd-shift-r": "mod.open:markdown-reader-pane"
+  }
+}

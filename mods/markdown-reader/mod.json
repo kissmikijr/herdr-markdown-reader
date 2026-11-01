@@ -1,0 +1,5 @@
+{
+  "place": "none",
+  "title": "Markdown Reader",
+  "overlay": { "kind": "dialog", "width": 920, "height": 0.85 }
+}
