@@ -8,13 +8,13 @@ A quiet native Markdown reading space in Herdr, opened as a dialog, a tab, or a 
 
 The dialog is 920 px wide and 85% of the window height; a tab or split pane fills its available space. It uses Herdr theme colors throughout. At the top, a book icon and filename sit beside 30 px text-size buttons, Open in tab, and Close (the latter two only in an overlay). A path/search input, Open, and Refresh follow. A small row shows the base folder and Use terminal folder.
 
-Suggestions appear in a scrollable raised panel up to 250 px high, with at most eight matches. Each row has an MD or DIR label and a highlighted current selection. Errors appear above the document as a readable message. The selectable Markdown document sits in a scrolling region with 28 px horizontal padding, 18 px vertical padding, and a centered column at most 820 px wide. Text starts at 15 px. A footer shows refresh/loading state, word count, and estimated reading time at 220 words per minute.
+Suggestions appear only for a non-empty search or folder path, in a scrollable raised panel up to 250 px high, with at most eight matches. Each row has an MD or DIR label and a highlighted current selection. Errors appear above the document as a readable message. The selectable Markdown document sits in a scrolling region with 28 px horizontal padding, 18 px vertical padding, and a centered column at most 820 px wide. Text starts at 15 px. A footer shows refresh/loading state, word count, and estimated reading time at 220 words per minute.
 
 ## How it behaves
 
 Ctrl+Shift+M (or the included Command binding) opens the dialog. Ctrl+Shift+R opens a reader pane to the right of the focused pane using the companion launcher. With no focused pane the launcher shows a notification. These are Herdr shortcuts, not OS-global bindings. There are no agent-status indicators or animations.
 
-On opening, capture the focused terminal's working folder and the active space's machine. Index Markdown filenames recursively, preferring rg and skipping dependency/cache folders. Typing ranks names using exact, prefix, substring, and subsequence matches. Queries containing slashes browse the parent directory with a 140 ms debounce. Up/down wrap through suggestions, Tab completes, Enter opens a file or enters a folder, and Escape dismisses suggestions. Ctrl+L selects the path input. Clicking a suggestion performs the same action. Hover highlights buttons and suggestion rows.
+On opening, capture the focused terminal's working folder and the active space's machine. Focus the search input after the pane mounts, selecting any existing path. Keep the file list hidden until a non-empty query is entered; clearing the query or opening a file hides it. Focusing the input alone must not reopen suggestions. Index Markdown filenames recursively, preferring rg and skipping dependency/cache folders. Typing ranks names using exact, prefix, substring, and subsequence matches. Queries containing slashes browse the parent directory with a 140 ms debounce. Up/down wrap through suggestions, Tab completes, Enter opens a file or enters a folder, and Escape dismisses suggestions. Ctrl+L selects the path input. Clicking a suggestion performs the same action. Hover highlights buttons and suggestion rows.
 
 Open reads the resolved path and rejects missing/binary files with a visible error. A dropped file switches to local machine context. Refresh reloads the document and rebuilds the index. Use terminal folder captures the current context again. Poll an open document every five seconds and update it when contents change. A−/A+ clamp the size to 12–23 px. Open in tab creates a new mod tab carrying file, cwd, and machine props, then closes the overlay. Close dismisses the dialog. Text selection, copying, links, and Markdown layout use the native renderer.
 
@@ -37,7 +37,7 @@ Non-Windows folder browsing uses only POSIX shell features: glob immediate child
 ## Done when
 
 - Both mod folders pass `herdr-app check` and render in the running app.
-- The dialog shows the welcome document, suggestion list, and toolbar in the active theme.
+- A fresh reader shows the welcome document and toolbar with search focused and the file list hidden. Typing a query reveals suggestions; clearing it hides them again.
 - A known Markdown file opens by absolute and relative paths; a missing file shows an error.
 - Filename suggestions can be selected with arrows and opened with Enter; Tab completes and Escape dismisses.
 - Editing an open file updates the reader after five seconds; Refresh updates immediately.

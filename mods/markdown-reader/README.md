@@ -8,7 +8,7 @@ Paste a file path into the path field and press **Enter** or **Open**. You can a
 
 While the reader is active, press **Ctrl+L** to focus the file-path bar and select its contents.
 
-The reader starts in your current terminal folder and shows nearby Markdown files, including subfolders. Type part of a filename (for example `readme` or `implplan`) to fuzzy-search the list. Type a folder path ending in `/` to browse its Markdown files and subfolders.
+The reader starts in your current terminal folder with the search field focused. The file list stays hidden until you type a non-empty search, and hides again when you clear the field or open a file. Type part of a filename (for example `readme` or `implplan`) to fuzzy-search nearby Markdown files, including subfolders. Type a folder path ending in `/` to browse its Markdown files and subfolders.
 
 Use **↑ / ↓** to select, **Tab** to complete a path, and **Enter** to open a file or enter a folder. **Esc** dismisses suggestions. The folder is shown below the bar; **Use terminal folder** switches back to the current terminal's location. **Refresh** also refreshes the file list.
 

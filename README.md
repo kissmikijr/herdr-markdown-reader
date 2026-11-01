@@ -19,6 +19,8 @@ The supplied bindings also include **Command+Shift+M/R** for macOS. These are ap
 
 ## Read and search
 
+The search field is focused when a reader opens, including a split pane. The file list stays hidden until you type a non-empty search or folder path, and hides again when you clear it or open a file. Focusing the field alone does not reopen the list.
+
 Type part of a Markdown filename to search the terminal's working folder, or paste an absolute/relative file path. Arrow keys select suggestions, Tab completes a path, Enter opens it, and Escape dismisses suggestions. Ctrl+L focuses the path bar. Dropping a local file opens it.
 
 Use **A− / A+** for text size (12–23 px), **Refresh** to reload and reindex, and **Use terminal folder** to change the search root. The reader checks an open file every five seconds. **Open in tab** moves an overlay reader into a new tab.

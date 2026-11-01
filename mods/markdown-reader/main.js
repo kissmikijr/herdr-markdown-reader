@@ -57,17 +57,20 @@ export default class MarkdownReader extends View {
     this.error = null;
     this.files = []; this.matches = []; this.selected = 0;
     this.searchVersion = 0; this.indexVersion = 0;
-    this.showSuggestions = !p.file;
+    this.showSuggestions = false;
+    this.inputFocused = false;
     this.handle = cx.focus_handle();
     this.handle.focus();
     this.input = InputState.new({ placeholder: "Search Markdown files or type a folder/path…", value: p.file || p.query || "" });
     this.input.on("change", (_e, cx) => this.queryChanged(cx));
     this.input.on("submit", (_e, cx) => this.submit(cx));
-    this.input.on("focus", (_e, cx) => { this.inputFocused = true; this.queryChanged(cx); });
+    this.input.on("focus", (_e, cx) => { this.inputFocused = true; cx.notify(); });
     this.input.on("blur", (_e, cx) => { this.inputFocused = false; cx.notify(); });
     if (p.file) this.open(p.file, cx);
+    else if (clean(p.query)) this.queryChanged(cx);
     this.reindex(cx);
-    if (!p.file) this.input.focus();
+    // Pane creation assigns focus after init; focus the search once it mounts.
+    cx.timer.after(1, cx => { this.focusPath(); cx.notify(); });
     cx.timer.every(5000, cx => { if (this.file && !this.loading) this.load(cx, true); });
     cx.spawn(async cx => {
       for (;;) {
@@ -98,9 +101,11 @@ export default class MarkdownReader extends View {
   }
 
   queryChanged(cx) {
-    this.showSuggestions = true; this.selected = 0;
+    this.selected = 0;
     this.matches = []; this.folderError = null; this.searching = false;
     const version = ++this.searchVersion, query = clean(this.input.value());
+    this.showSuggestions = Boolean(query);
+    if (!query) { cx.notify(); return; }
     // A short debounce only for directory reads; indexed filename matching is immediate.
     if (!query.includes("/")) {
       this.matches = rankFiles(this.files, query);
