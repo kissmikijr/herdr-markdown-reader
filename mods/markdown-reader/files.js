@@ -53,7 +53,22 @@ export async function listFolder(dir, on) {
     const entries = JSON.parse(r.stdout || "[]");
     return (Array.isArray(entries) ? entries : [entries]).filter(e => e.dir || isMarkdown(e.path));
   }
-  const r = await exec("find", [dir, "-mindepth", "1", "-maxdepth", "1", "-printf", "%y\\0%f\\0"], { on });
+  // POSIX sh works with macOS's built-in tools as well as Linux. Run in the
+  // directory instead of interpolating its path into shell source. Separate
+  // hidden-file globs exclude . and ..; tests ignore unmatched literal globs.
+  const script = `count=0
+for entry in ./* ./.[!.]* ./..?*; do
+  [ -L "$entry" ] && continue
+  if [ -d "$entry" ]; then kind=d
+  elif [ -f "$entry" ]; then kind=f
+  else continue
+  fi
+  printf '%s\\000%s\\000' "$kind" "\${entry#./}"
+  count=$((count + 1))
+  [ "$count" -ge 1000 ] && break
+done
+exit 0`;
+  const r = await exec("sh", ["-c", script], { cwd: dir, on });
   if (r.code !== 0) throw new Error("Cannot list this folder. Check the path.");
   const fields = r.stdout.split("\0"), entries = [];
   for (let i=0; i+1<fields.length && entries.length<1000; i+=2) {

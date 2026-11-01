@@ -20,7 +20,7 @@ Open reads the resolved path and rejects missing/binary files with a visible err
 
 ## Built from
 
-There is no layout file. `mods/markdown-reader/main.js` defines a gpui-kit View using gpui-base InputState, Input, flex helpers, and TextView.markdown. `mod.json` sets place:none and dialog dimensions. `book.svg` is the only art asset. `search.js` normalizes paths, recognizes extensions, resolves paths, and ranks matches. `files.js` indexes with rg, falls back to bounded PowerShell on Windows, and lists directories with PowerShell or GNU find.
+There is no layout file. `mods/markdown-reader/main.js` defines a gpui-kit View using gpui-base InputState, Input, flex helpers, and TextView.markdown. `mod.json` sets place:none and dialog dimensions. `book.svg` is the only art asset. `search.js` normalizes paths, recognizes extensions, resolves paths, and ranks matches. `files.js` indexes with rg, falls back to bounded PowerShell on Windows, and lists directories with PowerShell or POSIX sh.
 
 Herdr APIs: theme, props, focused, panes, spaces, home, readTextFile, exec, window, run, closeOverlay, nextCommand, and notify. Commands: tab.new and pane.split. The reader also accepts refresh/open commands through nextCommand. Props: file, cwd, on (machine), query, and overlay. Timers use cx.timer; async work uses cx.spawn with generation counters to ignore stale results. A failed edit must retain the last working build through Herdr hot reload.
 
@@ -32,7 +32,7 @@ Use GPUI, not HTML, CSS, DOM, Node, or browser timers. Asset paths start at the 
 
 The code reads files outside its own directory and executes discovery programs; disclose this during installation. Do not ship personal files or state. Windows traversal skips reparse points and quotes PowerShell literals. Indexing limits: 3,000 files; Windows fallback 20,000 visited entries, 600 directories, six levels; folder listings 1,000 entries; visible suggestions eight. Files are subject to Herdr's 1 MiB read limit. MDX components are not executed. Home expansion is local only. Remote behavior is untested.
 
-The current non-Windows directory listing relies on GNU find (-printf, -maxdepth, -mindepth); BSD find on macOS does not support it. Document this limitation rather than claiming complete Mac support. Mac/Linux indexing needs rg. The shipped code has only been checked on Windows with Herdr 0.1.11. There are no intentionally inert controls.
+Non-Windows folder browsing uses only POSIX shell features: glob immediate children with ./*, ./.[!.]* and ./..?*, skip symlinks and non-file/non-directory entries, and emit NUL-separated type/name fields with printf. Keep the directory path in exec's cwd option, never in shell source. Stop after 1,000 entries before filtering Markdown extensions. Unmatched glob patterns are ignored through file tests, and . and .. are excluded. Do not introduce GNU find flags: macOS ships BSD find. Mac/Linux indexing still needs rg. Full app behavior has only been checked on Windows with Herdr 0.1.11. There are no intentionally inert controls.
 
 ## Done when
 
@@ -44,4 +44,5 @@ The current non-Windows directory listing relies on GNU find (-printf, -maxdepth
 - Text-size buttons respect their limits and text can be selected/copied.
 - Open in tab carries the current file and context; the companion launcher creates a reader to the right of the focused pane.
 - Shortcut installation preserves existing bindings and resolves conflicts.
-- The README accurately reports the untested platforms and GNU-find limitation.
+- `node --test tests/folders.test.cjs` passes for folder browsing, including hidden/unusual names, empty folders, the entry limit, and remote command routing.
+- The README distinguishes portable folder browsing from the untested full Mac/Linux app integration.
