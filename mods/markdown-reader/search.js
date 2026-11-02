@@ -5,7 +5,25 @@ export function resolvePath(value, base, userHome) {
   let path = clean(value);
   if (/^~(?:\/|$)/.test(path) && userHome) path = userHome + path.slice(1);
   if (!/^(?:[A-Za-z]:\/|\/|~)/.test(path)) path = base.replace(/[\\/]$/, "") + "/" + path;
-  return path;
+  const root = path.startsWith("//") ? "//" : path.startsWith("/") ? "/" : /^[A-Za-z]:\//.test(path) ? path.slice(0, 3) : "";
+  const parts = [];
+  for (const part of path.slice(root.length).split("/")) {
+    if (!part || part === ".") continue;
+    if (part === ".." && parts.length && parts[parts.length - 1] !== "..") parts.pop();
+    else if (part !== ".." || !root) parts.push(part);
+  }
+  return root + parts.join("/");
+}
+
+export const isFolderQuery = query => clean(query).endsWith("/");
+
+export function searchMatches(files, entries, query, prefix = "", limit = 50) {
+  const candidates = new Map(files.map(entry => [entry.path, entry]));
+  for (const entry of entries) {
+    const path = prefix + entry.path;
+    candidates.set(path, { ...entry, path });
+  }
+  return rankFiles([...candidates.values()], query, limit);
 }
 
 export function rankFiles(files, query, limit = 8) {

@@ -3,13 +3,14 @@ import { isMarkdown } from "./search.js";
 
 const quote = text => "'" + text.replaceAll("'", "''") + "'";
 const SKIP = [".git", "node_modules", "AppData", ".codex", ".cache", ".venv", "venv", "target", "dist", "build", "$RECYCLE.BIN"];
+export const skipFolder = name => SKIP.includes(name);
 
 export async function indexMarkdown(root, on) {
   try {
-    const r = await exec("rg", ["--files", "--hidden", "--iglob", "*.{md,markdown,mdown,mkd,mdx}", ...SKIP.flatMap(name => ["-g", "!**/" + name + "/**"])], { cwd: root, on });
+    const r = await exec("rg", ["--files", "--null", "--hidden", "--iglob", "*.{md,markdown,mdown,mkd,mdx}", ...SKIP.flatMap(name => ["--iglob", "!**/" + name + "/**"])], { cwd: root, on });
     if (r.code === 0 || r.code === 1) {
-      const files = r.stdout.split(/\r?\n/).filter(Boolean);
-      return { files: files.slice(0, 3000).map(path => ({ path, dir: false })), limited: files.length > 3000 };
+      const files = r.stdout.split("\0").filter(Boolean);
+      return { files: files.slice(0, 3000).map(path => ({ path: !on && window()?.platform === "windows" ? path.replaceAll("\\", "/") : path, dir: false })), limited: files.length > 3000 };
     }
   } catch { /* Use the platform's built-in tools when rg isn't installed. */ }
   if (!on && window()?.platform === "windows") {

@@ -1,48 +1,159 @@
 # Markdown Reader
 
-A quiet native Markdown reading space in Herdr, opened as a dialog, a tab, or a pane beside a terminal. Search the current working folder, open a file, and keep it visible while working.
+A native Markdown reader in Herdr, shown as a dialog, tab, or pane beside a terminal.
+It starts in the selected terminal's folder and provides an expandable file tree, filename search, folder selection, and live document refresh.
 
 ![Markdown Reader](preview.png)
 
 ## What you see
 
-The dialog is 920 px wide and 85% of the window height; a tab or split pane fills its available space. It uses Herdr theme colors throughout. At the top, a book icon and filename sit beside 30 px text-size buttons, Open in tab, and Close (the latter two only in an overlay). A path/search input, Open, and Refresh follow. A small row shows the base folder and Use terminal folder.
+The dialog is 920 px wide and 85% of the window height.
+A tab or split pane fills its available space.
+All surfaces, borders, and text use Herdr theme colors.
 
-Suggestions appear only for a non-empty search or folder path, in a scrollable raised panel up to 250 px high, with at most eight matches. Each row has an MD or DIR label and a highlighted current selection. Errors appear above the document as a readable message. The selectable Markdown document sits in a scrolling region with 28 px horizontal padding, 18 px vertical padding, and a centered column at most 820 px wide. Text starts at 15 px. A footer shows refresh/loading state, word count, and estimated reading time at 220 words per minute.
+A single compact toolbar contains an icon button for the sidebar, a search field, a folder indicator, and a kebab menu.
+There is no title banner or full folder path row.
+The folder indicator shows a folder icon and the root folder name, with the full path in its tooltip.
+In narrow panes it shows only the folder icon.
+Click it to open the folder selector.
+The kebab menu contains text size controls, Reset text size, Refresh files and document, and Use terminal folder.
+An overlay also has Open in tab and Close reader in this menu.
+Text starts at 15 px and can be changed from 12 to 23 px.
+
+Open folder shows a native popover with a folder path field, Open, and Browse this computer.
+Browse opens the system folder picker.
+
+The file tree is 222 px wide, or 180 px when the reader is narrower than 650 px.
+It has a Files label, a kebab menu with Collapse all folders, and a collapsible root folder.
+Folders sort before files and have expand/collapse arrows.
+Markdown files have document icons; the open file has a selected background.
+A footer gives the indexed file count.
+Tree and document scroll independently.
+
+Search results appear above the reading area only while a non-empty query is active.
+Each result has a filename and parent folder.
+The list holds up to 50 results and shows up to six rows before scrolling.
+The selected result has a highlighted background.
+Errors appear in the folder popover or above the document.
+
+The document uses 28 px horizontal padding, or 16 px in a narrow pane, with 18 px vertical padding and a centered column up to 820 px wide.
+A footer shows loading or refresh state, word count, and reading time at 220 words per minute.
 
 ## How it behaves
 
-Ctrl+Shift+M (or the included Command binding) opens the dialog. Ctrl+Shift+R opens a reader pane to the right of the focused pane using the companion launcher. With no focused pane the launcher shows a notification. These are Herdr shortcuts, not OS-global bindings. There are no agent-status indicators or animations.
+Ctrl+Shift+M, or the supplied Command binding, opens the dialog.
+Ctrl+Shift+R opens a reader to the right of the focused pane through the companion launcher.
+With no focused pane, the launcher shows a notification.
+These are Herdr shortcuts, not system-wide shortcuts.
 
-On opening, capture the focused terminal's working folder and the active space's machine. Focus the search input after the pane mounts, selecting any existing path. Keep the file list hidden until a non-empty query is entered; clearing the query or opening a file hides it. Focusing the input alone must not reopen suggestions. Index Markdown filenames recursively, preferring rg and skipping dependency/cache folders. Typing ranks names using exact, prefix, substring, and subsequence matches. Queries containing slashes browse the parent directory with a 140 ms debounce. Up/down wrap through suggestions, Tab completes, Enter opens a file or enters a folder, and Escape dismisses suggestions. Ctrl+L selects the path input. Clicking a suggestion performs the same action. Hover highlights buttons and suggestion rows.
+On opening, capture the selected terminal's live working folder and machine before the reader takes focus.
+Prefer the focused terminal's folder, including layout terminal blocks, then a terminal in the same tab, then the space folder and local home.
+Explicit cwd and machine props take precedence.
+Focus the search field after the pane mounts.
+For a new workspace, the tree starts visible; search results start hidden unless a query prop was supplied.
+Persist the last successfully opened file and its machine, expanded folders, root expansion, text size, and sidebar visibility through Herdr shared state.
+Key each record by the normalized workspace path and machine.
+Restore on reader creation and successful folder changes; explicit file and display props take priority.
+Save user changes immediately so closing another copy cannot overwrite newer state.
 
-Open reads the resolved path and rejects missing/binary files with a visible error. A dropped file switches to local machine context. Refresh reloads the document and rebuilds the index. Use terminal folder captures the current context again. Poll an open document every five seconds and update it when contents change. A−/A+ clamp the size to 12–23 px. Open in tab creates a new mod tab carrying file, cwd, and machine props, then closes the overlay. Close dismisses the dialog. Text selection, copying, links, and Markdown layout use the native renderer.
+Read only the root directory and expanded directories for the tree.
+Do not walk the entire tree to draw the sidebar.
+Opening a search result expands its parent folders and scrolls the active file into view.
+Files hides or shows the sidebar; Collapse closes expanded folders.
+The root folder can also be collapsed.
+A failed directory read has a retry row.
+
+Index Markdown filenames recursively with ripgrep, skipping dependency and cache folders.
+Use NUL-separated output so newlines in filenames do not split a file into multiple results.
+Use the same case-insensitive glob option for inclusion and exclusion so exclusions take effect.
+On local Windows without rg, use bounded PowerShell traversal.
+
+Rank searches by exact filename, prefix, substring, path, and subsequence matches.
+A query such as guides/install can find guides/setup/install.md.
+Queries containing slashes also read the parent directory after a 140 ms debounce.
+An explicit absolute path or a trailing slash browses that directory's immediate entries.
+Up/down wrap through results and keep the selected row visible.
+Tab completes a path; Enter or Open selects a file or enters a suggested folder.
+Escape closes the results.
+Clearing the search or opening a file also closes the results; focusing alone does not reopen them.
+Ctrl+L and Command+L focus the search field.
+
+Open folder accepts a path relative to the current workspace or an absolute path.
+A typed path uses the workspace machine; Browse this computer always selects a local folder.
+Cancellation leaves the workspace unchanged.
+Validate the chosen directory before replacing the workspace or document.
+A successful change clears the old document, search results, and expanded folders, then rebuilds the tree and index.
+Use terminal folder captures the selected terminal context again through the same validation flow.
+
+Open reads the resolved path and reports missing or binary files.
+A dropped file is local and does not change the tree or search machine.
+Keep the document's machine separately from the workspace machine.
+Refresh reloads the document and rebuilds the tree and search index.
+The reader checks an open file every five seconds.
+Ignore stale file, folder, tree, and index results after a newer request or workspace change.
+
+Open in tab carries the file, document machine, workspace folder and machine, text size, and sidebar visibility, then closes the overlay.
+Text selection, copying, Markdown layout, and links use Herdr's renderer.
+MDX components are not executed.
 
 ## Built from
 
-There is no layout file. `mods/markdown-reader/main.js` defines a gpui-kit View using gpui-base InputState, Input, flex helpers, and TextView.markdown. `mod.json` sets place:none and dialog dimensions. `book.svg` is the only art asset. `search.js` normalizes paths, recognizes extensions, resolves paths, and ranks matches. `files.js` indexes with rg, falls back to bounded PowerShell on Windows, and lists directories with PowerShell or POSIX sh.
+There is no layout file, HTML, CSS, DOM, or browser runtime.
+The main mod is a gpui-kit View with gpui-base InputState, Input, Button, Popover, TextView.markdown, virtual lists, scroll handles, and scrollbars.
+Virtual list renderers only describe rows; their click handlers belong to the list.
 
-Herdr APIs: theme, props, focused, panes, spaces, home, readTextFile, exec, window, run, closeOverlay, nextCommand, and notify. Commands: tab.new and pane.split. The reader also accepts refresh/open commands through nextCommand. Props: file, cwd, on (machine), query, and overlay. Timers use cx.timer; async work uses cx.spawn with generation counters to ignore stale results. A failed edit must retain the last working build through Herdr hot reload.
+The reader files are:
 
-`mods/markdown-reader-pane/main.js` is a one-pixel popup launcher that captures focus/context, closes itself after a 1 ms timer, and splits the captured pane. Its mod.json sets place:none and a 1×1 popup. The bundled keys.json is a merge snippet containing only reader shortcuts.
+- main.js: UI, document loading, lazy tree state, search state, folder selection, and the command listener.
+- context.js: terminal and machine selection.
+- search.js: path cleanup and resolution, filename ranking, and indexed/directory result merging.
+- files.js: rg indexing, Windows fallback, and immediate directory listings.
+- book.svg, file.svg, chevron-right.svg, and chevron-down.svg: native UI icons.
+- mod.json: place:none and dialog dimensions.
+
+Herdr APIs include theme, props, focused, panes, spaces, home, readTextFile, pickFolder, exec, window, run, closeOverlay, and nextCommand.
+App commands are tab.new and pane.split.
+Reader commands are open, refresh, toggle-tree, menu, open-folder, use-terminal-folder, smaller, and larger.
+Props include file, fileOn, cwd, on, query, fontSize, treeVisible, and overlay.
+Use cx.timer for data and debounce work, and cx.spawn for asynchronous operations.
+
+The companion markdown-reader-pane mod captures the pane and terminal context before closing its one-pixel popup and splitting the captured pane.
+The supplied keys.json contains only reader shortcuts and must be merged with existing bindings.
 
 ## Watch out
 
-Use GPUI, not HTML, CSS, DOM, Node, or browser timers. Asset paths start at the Herdr home (`mods/markdown-reader/book.svg`). If mod folders are renamed, rewrite self-references, asset paths, and shortcut targets. Do not replace shipped mods, personal layouts, or the user's keys.json.
+Do not edit Herdr's shipped mods, generated type files, personal layouts, or settings.
+Check each mod with herdr-app check, then inspect it in the running app.
+A passing check does not exercise deferred virtual rows or later async states.
+A failed hot reload can retain the previous working build, so also inspect herdr-app status for errors.
 
-The code reads files outside its own directory and executes discovery programs; disclose this during installation. Do not ship personal files or state. Windows traversal skips reparse points and quotes PowerShell literals. Indexing limits: 3,000 files; Windows fallback 20,000 visited entries, 600 directories, six levels; folder listings 1,000 entries; visible suggestions eight. Files are subject to Herdr's 1 MiB read limit. MDX components are not executed. Home expansion is local only. Remote behavior is untested.
+The reader reads files outside its mod directory and runs discovery programs.
+Disclose this on installation.
+Paths are process arguments or working directories, never executable shell source.
+Do not ship personal files, app state, or terminal contents.
 
-Non-Windows folder browsing uses only POSIX shell features: glob immediate children with ./*, ./.[!.]* and ./..?*, skip symlinks and non-file/non-directory entries, and emit NUL-separated type/name fields with printf. Keep the directory path in exec's cwd option, never in shell source. Stop after 1,000 entries before filtering Markdown extensions. Unmatched glob patterns are ignored through file tests, and . and .. are excluded. Do not introduce GNU find flags: macOS ships BSD find. Mac/Linux indexing still needs rg. Full app behavior has only been checked on Windows with Herdr 0.1.11. There are no intentionally inert controls.
+Directory browsing uses POSIX sh on macOS/Linux and remote machines, and PowerShell on local Windows.
+The POSIX branch uses immediate-child globs for regular and hidden entries, skips symlinks, and emits NUL-separated type/name fields.
+Do not use GNU find flags because macOS uses BSD find.
+Mac/Linux filename indexing requires rg, but tree browsing and direct paths work without it.
+
+Limits are 3,000 indexed files, 50 search results, 1,000 entries per directory read, 5,000 stored tree entries, and 40 tree levels.
+The Windows fallback also limits traversal to 20,000 entries, 600 directories, and six levels.
+Herdr limits file reads to 1 MiB of UTF-8 text.
+Home expansion is local only.
+Remote integration and the new Windows/Linux controls have not been checked in the full app.
+Native UI checks were run on Herdr 0.1.11 on macOS; the earlier reader was checked on Windows.
 
 ## Done when
 
-- Both mod folders pass `herdr-app check` and render in the running app.
-- A fresh reader shows the welcome document and toolbar with search focused and the file list hidden. Typing a query reveals suggestions; clearing it hides them again.
-- A known Markdown file opens by absolute and relative paths; a missing file shows an error.
-- Filename suggestions can be selected with arrows and opened with Enter; Tab completes and Escape dismisses.
-- Editing an open file updates the reader after five seconds; Refresh updates immediately.
-- Text-size buttons respect their limits and text can be selected/copied.
-- Open in tab carries the current file and context; the companion launcher creates a reader to the right of the focused pane.
-- Shortcut installation preserves existing bindings and resolves conflicts.
-- `node --test tests/folders.test.cjs` passes for folder browsing, including hidden/unusual names, empty folders, the entry limit, and remote command routing.
-- The README distinguishes portable folder browsing from the untested full Mac/Linux app integration.
+- Both mods pass herdr-app check and show no errors in herdr-app status.
+- A fresh reader uses the selected terminal folder, shows the root tree, and focuses search without showing results.
+- Folders expand and collapse; Files toggles the sidebar; Collapse closes expanded folders.
+- A nested file opens from the tree, and a search result reveals its parent folders and selected row.
+- Filename and nested path search work with arrows, Tab, Enter, Escape, and clearing.
+- Open folder works with typed paths and the system picker, and invalid paths or cancellation preserve the current workspace.
+- Menu controls change and reset text size within the limits.
+- Refresh updates the file, tree, and index; file polling updates changed document contents.
+- Open in tab keeps the file and workspace context; the companion launcher creates a reader beside the selected pane.
+- node --test tests/*.test.cjs passes with rg available.
+- Native screenshots cover the tree, nested search, folder changes, and menu, including deferred list rows.

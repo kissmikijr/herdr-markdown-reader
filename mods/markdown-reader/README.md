@@ -1,29 +1,55 @@
 # Markdown Reader
 
-A calm reading space beside your work. Open it with **Ctrl+Shift+M**, or find **Markdown Reader** in the command palette.
+A Markdown reading space beside your work.
+Open it with **Ctrl+Shift+M**, or find **Markdown Reader** in the command palette.
 
 ## Open a document
 
-Paste a file path into the path field and press **Enter** or **Open**. You can also drag a file from Explorer into the reader.
+The reader starts in the selected terminal's current folder.
+Click a folder in the file tree to expand or collapse it, then click a Markdown file to open it.
+The sidebar button hides or shows the tree.
+Use the tree kebab menu to collapse all folders.
 
-While the reader is active, press **Ctrl+L** to focus the file-path bar and select its contents.
+Click the folder indicator to enter a workspace path or **Browse this computer** to use the system folder picker.
+The tree and filename search use that folder until you choose another one.
+An invalid folder keeps the current document and workspace.
+In a remote workspace, a typed folder path uses the remote machine; Browse selects a local folder.
 
-The reader starts in your current terminal folder with the search field focused. The file list stays hidden until you type a non-empty search, and hides again when you clear the field or open a file. Type part of a filename (for example `readme` or `implplan`) to fuzzy-search nearby Markdown files, including subfolders. Type a folder path ending in `/` to browse its Markdown files and subfolders.
+Type part of a filename, such as `readme`, or a path, such as `guides/install`, to search across subfolders.
+Results show filenames and parent folders, with up to 50 results in a scrollable list.
+A folder path ending in `/` lists that folder's Markdown files and subfolders.
+You can also paste an absolute or relative file path and press **Enter** or **Open**.
+Dropping a local file opens it without changing the workspace folder.
 
-Use **↑ / ↓** to select, **Tab** to complete a path, and **Enter** to open a file or enter a folder. **Esc** dismisses suggestions. The folder is shown below the bar; **Use terminal folder** switches back to the current terminal's location. **Refresh** also refreshes the file list.
+Use **↑ / ↓** to select, **Tab** to complete a path, and **Enter** to open a file or enter a folder.
+**Esc**, clearing the search, or opening a file closes the result list.
+**Ctrl+L** or **Command+L** focuses the search field.
 
-Search lists up to 3,000 files and skips dependency/cache folders. Without ripgrep, Windows uses a bounded scan; a `+` after the file count indicates a partial list. You can always open a full path directly.
+Search indexes up to 3,000 files and skips dependency/cache folders.
+Without ripgrep, Windows uses a bounded scan; a `+` after the file count indicates a partial list.
+You can always open a full path directly.
 
 - Absolute paths and `~/` paths work.
-- Relative paths start from the terminal folder where you opened the reader.
+- Relative paths start from the chosen workspace folder.
 - Local UTF-8 Markdown and text files up to **1 MiB** are supported.
-- The reader checks the file for changes every **5 seconds**. **Refresh** checks immediately.
+- The reader checks the file for changes every **5 seconds**.
+  **Refresh files and document** in the Menu checks immediately and refreshes the tree and search index.
+
+The reader remembers the last open file, expanded folders, text size, and sidebar visibility for each workspace folder.
+Local and remote folders have separate saved state.
+State is stored by Herdr and returns when you reopen the reader or select that folder again.
+A file given explicitly when opening the reader takes priority over the saved file.
 
 ## Make yourself comfortable
 
-Use **A−** and **A+** to change the text size. Text can be selected and copied. Links open in your browser.
+Open the toolbar **kebab menu** to use **A−** and **A+** for text size, or **Reset text size** to return to 15 px.
+The Menu also has **Use terminal folder** to set the workspace from the terminal again.
+Text can be selected and copied.
+Links use Herdr's Markdown renderer.
 
-Choose **Open in tab** for a full reading workspace. You can split a terminal beside it using Herdr's normal pane controls.
+Choose **Open in tab** in the overlay's Menu for a full reading workspace.
+This keeps the file, folder, machine context, text size, and sidebar visibility.
+You can split a terminal beside it using Herdr's normal pane controls.
 
 > This viewer follows your Herdr theme automatically.
 
